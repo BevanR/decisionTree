@@ -67,7 +67,7 @@ jQuery = jQuery || false;
           next();
         }
       }
-      else if (decisions[question.key] && !question.ask) {
+      else if (decisions[question.key] && !question.label) {
         answer(question, decisions[question.key]);
       }
       else {
@@ -155,13 +155,18 @@ jQuery = jQuery || false;
     };
 
     complete = function(value) {
-      var i;
+      var i, result;
       for (i in factors) {
         if (factors.hasOwnProperty(i)) {
           value *= factors[i];
         }
       }
-      $el.trigger('decisionTree.complete', value);
+      result = {
+        'value': value,
+        'factors': factors,
+        'decisions': decisions
+      };
+      $el.trigger('decisionTree.complete', result);
       debug();
     };
 
