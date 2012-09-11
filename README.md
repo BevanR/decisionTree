@@ -74,3 +74,10 @@ var options = {
 };
 jQuery('#my-decision-tree-wrapper').decisionTree(myQuestionTree, options);
 ```
+
+All options are optional.
+
+* `id` is used in ID attributes and should be unique for every instance of decisionTree.
+* `name` is used in `name=""` attributes and becomes the key in the POST or GET request for the form.  It should probably also be unique per decisionTree instance.
+* `selectLabel` is used in the first default disabled option of `<select>` elements as a prefix for the Question label.  So if the label is "Color" and `selectLabel` is "Pick your", the select element's label is "Pick your Color".
+* `decisions` instantiates the decision table with decisions.  These could be restored from the database, or determined by some context.  For any decisions provided this way, the question will only be asked if it has a `label`.  In this way questions can be supressed; answered without asking the decision maker through the UI.
