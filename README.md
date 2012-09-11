@@ -4,7 +4,7 @@ An algorithm & user interface component (for web pages) to parse and make decisi
 
 ## Usage
 
-The UI component is initialised as a jQuery plugin;
+The UI component is initialized as a jQuery plugin;
 
 ```javascript
 jQuery('#my-decision-tree-wrapper').decisionTree(myQuestionTree, options);
@@ -28,7 +28,7 @@ jQuery('#my-decision-tree-wrapper')
 
 ## Question tree
 
-Each point (node) in the question tree (myQuestionTree in the examples abofe) is either a *Question* or a *Node*.  The tree parameter as passed to jQuery.decisionTree() can be either a Node or a Question.
+Each point (node) in the question tree (`myQuestionTree` in the examples above) is either a *Question* or a *Node*.  The tree parameter as passed to jQuery.decisionTree() can be either a Node or a Question.
 
 ### Node
 
@@ -56,7 +56,7 @@ A Question may have a `requirements` property, which is an object, whose propert
 
 ## Decision table
 
-The decision table is an object representing a simple key-value table, where the key is the Question's `key` and the value is the decision (the answer for that question).  The decision table can be pre-populated via `options.decisions` when invoking `jQeury.decisionTree()`.
+The decision table is an object representing a simple key-value table, where the key is the Question's `key` and the value is the decision (the answer for that question).  The decision table can be pre-populated via `options.decisions` when invoking `jQuery.decisionTree()`.
 
 ## Options
 
@@ -80,4 +80,4 @@ All options are optional.
 * `id` is used in ID attributes and should be unique for every instance of decisionTree.
 * `name` is used in `name=""` attributes and becomes the key in the POST or GET request for the form.  It should probably also be unique per decisionTree instance.
 * `selectLabel` is used in the first default disabled option of `<select>` elements as a prefix for the Question label.  So if the label is "Color" and `selectLabel` is "Pick your", the select element's label is "Pick your Color".
-* `decisions` instantiates the decision table with decisions.  These could be restored from the database, or determined by some context.  For any decisions provided this way, the question will only be asked if it has a `label`.  In this way questions can be supressed; answered without asking the decision maker through the UI.
+* `decisions` instantiates the decision table with decisions.  These could be restored from the database, or determined by some context.  For any decisions provided this way, the question will only be asked if it has a `label`.  In this way questions can be suppressed; answered without asking the decision maker through the UI.
