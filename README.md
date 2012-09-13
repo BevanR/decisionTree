@@ -1,6 +1,6 @@
 # Decision Tree
 
-An algorithm & user interface component (for web pages) to parse and make decisions through a tree of nested inter-dependent questions.  This javascript implementation depends on jQuery but that dependency is easy to remove.
+An algorithm & user interface component (for web pages) to parse and make decisions through a tree of nested questions with dependencies.  This javascript implementation depends on jQuery but that dependency is easy to remove.
 
 ## Usage
 
@@ -12,7 +12,8 @@ jQuery('#my-decision-tree-wrapper').decisionTree(myQuestionTree, options);
 
 ## Events
 
-The `decisionTree.complete` and `decisionTree.incomplete` events are triggered when the decision-maker (user) has reached a decision or changed an old decision after having reached a decision.
+* `decisionTree.complete` is triggered when the decision-maker (the user) has no more questions pending.
+* `decisionTree.incomplete` is triggered when an old decision is changed and there are now questions pending once again.
 
 ```javascript
 jQuery('#my-decision-tree-wrapper')
@@ -28,39 +29,49 @@ jQuery('#my-decision-tree-wrapper')
 
 ## Question tree
 
-Each point (node) in the question tree (`myQuestionTree` in the examples above) is either a *Question* or a *Node*.  The tree parameter as passed to jQuery.decisionTree() can be either a Node or a Question.
+The first parameter to `jQuery.decisionTree()` is a question tree.  `myQuestionTree` is the question tree in the examples above.
+
+Each node in the question tree is either a *Question* or a *Node*.  The root of the tree—the parameter passed to `jQuery.decisionTree()`—can be either a Node or a Question.
 
 ### Node
 
-A Node should have a `label` property; This is used as the display value when asking the Node's parent question.  If root element at the top of the tree _is_ a node, then the label is not used.
+Nodes may list questions, provide the result value or a factor to modify that value upon completion.  Nodes also contains the UI text representing the value of an option for a Question's answer.
 
-Nodes should have at least one of the following properties.  If it has more than one of these properties, then only the first encountered one (in the following order) is used;
+Nodes mast have either `value`, `factor`, or `questions`.  The first one of these properties to be encountered will be used to determine how to process the node.  Any others will be ignored.
 
-* `value`;  This indicates an endpoint in the tree was reached, and the value is the final decision.  This is currently limited to numeric values.
-* `factor`;  This decision affects the final value by being multiplied to it, and thus must also be a number.
-* `questions`:  An array of Questions to be answered.
+#### Properties
 
-If a node is reached and it does not have one of those properties "decisionTree.complete" event will fire but with undefined or zero value.
+* `label`, String: The display value used when asking the Node's parent Question.  `label` is ignored if the Node is the root element of the question tree.  All other Nodes should have a `label`.
+* `value`, Number:  The result of the decision tree when there are no more questions to be asked.
+* `factor`, Number:  Multiplied to the result of the decision upon completion of the decision tree.
+* `questions`, Array:  Ordered Questions to be asked to resolve this node.
+* `requirements`, Object:  Property names are keys in the decision table.  Value is the permitted value of that decision in the decision table.  If the value is an array, then the decision may match any of the array's values.  If a Node does not have requirements then it is always passes the check for requirements.
 
 ### Question
 
-A Question must have a `key` property.  This is used to identify this question in the decision tree, and identify answers without asking if a question with the same key is repeated.
+#### Properties
 
-A Question must have an `options` property.  This is an object whose property names are the values to be stored in the decision table, and whose values are either a Node or a final value.  The final value is equivalent to a node with only a `value` property and no `label`.
-
-A Question may have a `label` property, even if it is the root of the question tree.  It is used as the label for the question.
-
-If there is no `label` property and the question has an answer in the decision table, then that answer is used to make the decision, and no markup is rendered in the UI to ask the decision-maker.
-
-A Question may have a `requirements` property, which is an object, whose property names are keys in the decision table, and whose values are the values of those decisions in the decision table.  If the Question has a requirements property, then all the requirements must match the decisions in the decision table.  The value of a requirement can also be an array of possible values that meet the requirements for the question.
+* `key`, String:  Identifies this question in HTML form and HTTP-submitted values.  It also identifies the question's answer in the decision table, and the question's factor in the factor table.  *Required*.
+* `options`, Object:  Property names get stored in the decision table.  Values are either a number, a Node or a question.  A numeric result is handled just like a Node with a `value` property but no `label`.  *Required*.
+* `label`, String:  Used to build the label for the question.  Questions that are already answered and should not be updateable by the decision-maker should omit a `label`.
+* `requirements`, Object:  As per `Node.requirements`.
 
 ## Decision table
 
-The decision table is an object representing a simple key-value table, where the key is the Question's `key` and the value is the decision (the answer for that question).  The decision table can be pre-populated via `options.decisions` when invoking `jQuery.decisionTree()`.
+The decision table is an object representing a simple key-value table, where the key is the Question's `key` and the value is the decision (the answer for that question).  The decision table can be pre-populated via `options.decisions` when invoking `jQuery.decisionTree()`.  This is useful for restoring decision trees that have been saved to the database and retrieved.
 
 ## Options
 
-Options can be passed to decisionTree like this;
+All options are optional.
+
+* `id`, String:  Used in ID attributes and should be unique for every instance of decisionTree.
+* `name`, String:  Used in `name=""` attributes and becomes the key in the `POST` or `GET` request for the form.  In most cases it should be unique and/or end with a square bracket component.  E.g. `my-decision-tree[2]`.
+* `selectLabel`, String:  Used in the first default disabled `<option>` of `<select>` elements as a prefix for the Question label.  So if the label is "_Color_" and `selectLabel` is "_Pick your_", then the `<select>` element's label becomes "_Pick your Color_".
+* `decisions` Object:  Instantiates the decision table with decisions.  These could be restored from the database, or determined by some context.  For any decisions provided this way, the corresponding question(s) will only be asked in the UI if the question has a `label`.  Questions can be suppressed in this way.  I.e. answered without asking the decision maker through the UI.
+
+### Usage
+
+Options can be passed to decisionTree like this:
 
 ```
 var options = {
@@ -74,10 +85,3 @@ var options = {
 };
 jQuery('#my-decision-tree-wrapper').decisionTree(myQuestionTree, options);
 ```
-
-All options are optional.
-
-* `id` is used in ID attributes and should be unique for every instance of decisionTree.
-* `name` is used in `name=""` attributes and becomes the key in the POST or GET request for the form.  It should probably also be unique per decisionTree instance.
-* `selectLabel` is used in the first default disabled option of `<select>` elements as a prefix for the Question label.  So if the label is "Color" and `selectLabel` is "Pick your", the select element's label is "Pick your Color".
-* `decisions` instantiates the decision table with decisions.  These could be restored from the database, or determined by some context.  For any decisions provided this way, the question will only be asked if it has a `label`.  In this way questions can be suppressed; answered without asking the decision maker through the UI.

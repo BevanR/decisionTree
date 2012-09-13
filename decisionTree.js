@@ -62,9 +62,10 @@ jQuery = jQuery || false;
 
         // Each generation in the tree usually alternates between nodes and
         // questions.  I.e.; Questions are usually children of nodes, and nodes
-        // are usually children of questions.  But questions may also be children
-        // of questions.  This may occur when a decision tree knows that there is
-        // already an answer to the question in the decisions table.
+        // are usually children of questions.  But questions may also be
+        // children of questions.  This may occur when a question tree knows
+        // that there is already an answer to the question in the decision
+        // table.
         if (node.options) {
           // This node is actually a question.
           ask(node);
@@ -149,7 +150,7 @@ jQuery = jQuery || false;
       answer = function(question, decision) {
         var child;
 
-        // Store the answer in the decisions table.
+        // Store the answer in the decision table.
         decisions[question.key] = decision;
 
         // Disable the label <option> for this question.
@@ -428,7 +429,7 @@ jQuery = jQuery || false;
         }
       };
 
-      // Apply the same decision tree to each element in the jQuery object.
+      // Apply the same question tree to each element in the jQuery object.
       process(tree);
     });
 
