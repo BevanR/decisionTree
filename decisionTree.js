@@ -1,241 +1,380 @@
 /**
  * Decision tree parsing algorithm.
  *
- * @see README.txt
+ * @see README.md
  */
 
 // @todo Document this.
 
 /*jslint white: true, devel: true */
+
+// This keeps jslint from complaining about undefined variables.
+// @todo Comment this out in production.
 var jQuery;
 jQuery = jQuery || false;
 
+// Provide closure.
 (function($){
+
   // @todo Don't use strict mode in production.
   "use strict";
 
+  // Implement as a jQuery plugin.
   jQuery.fn.decisionTree = function(tree, options) {
-    var $el, id, name, label, questions, decisions, factors, /* Functions: */ process, ask, answer, update, orphans, requirements, complete, next, asked, markup, average, debug;
 
-    $el = this;
-    id = options.id || Math.floor(Math.random() * 1000);
-    name = options.name || 'decision-tree[' + id + ']';
-    label = options.label || '- Select';
+    // The `this` variable is already a jQuery object.
+    this.each(function() {
 
-    questions = [];
-    decisions = options.decisions || {};
-    factors = {};
+      // Declare all vars & functions so the scope is unambiguous.
+      var $el, id, name, label, questions, decisions, factors, value,
+        /* Functions: */
+        process, ask, answer, next, complete, update, orphans, requirements, asked, markup, average, debug;
 
-    process = function(node, parent) {
-      var i;
+      $el = $(this);
+      // Create a unique ID for this decision tree instance.
+      id = options.id || Math.floor(Math.random() * 1000);
+      // Use the unique ID to form the the <input name=""> attributes.
+      name = options.name || 'decision-tree[' + id + ']';
+      label = options.label || '- Select';
 
-      if (parent) {
-        node.parent = parent;
-      }
+      // Track the asked questions.  They may be unanswered.
+      questions = [];
+      // The decision table stores answers to questions (aka "decisions").
+      // Allow previously stored and retrieved decision tables to be restored.
+      decisions = options.decisions || {};
+      // Store factors that will by multiplied to the final value.
+      factors = {};
 
-      // Nodes on the tree usually alternate between questions and nodes.  But sometimes a question can have more questions as it's options, if for example the tree knows that the decision has already been made, but needs to fork.
-      if (node.options) {
-        ask(node);
-      }
-      // Nodes must have either a value, factor or list of questions.
-      else if (typeof(node.value) !== 'undefined') {
-        complete(node.value);
-      }
-      else if (node.factor) {
-        factors[node.parent] = node.factor;
-        next();
-      }
-      else if (node.questions && node.questions.length) {
-        for (i = 1; i < node.questions.length; i = i + 1) {
-          node.questions[i - 1].next = node.questions[i];
+      /**
+       * Process a node (or question)
+       *
+       * @param node
+       *    The node to be processed.  This may also be a question.
+       * @param parent
+       *    The key of the question which is a parent to this node (or question).
+       */
+      process = function(node, parent) {
+        var i;
+
+        if (parent) {
+          node.parent = parent;
         }
-        ask(node.questions[0]);
-      }
-      else if (!next()) {
-        // No value found.
-        complete();
-      }
-    };
 
-    ask = function(question) {
-      // Ask the next question if it's requirements are not met.
-      if (question.requirements && !requirements(question.requirements)) {
-        if (question.next) {
-          ask(question.next);
+        // Each generation in the tree usually alternates between nodes and
+        // questions.  I.e.; Questions are usually children of nodes, and nodes
+        // are usually children of questions.  But questions may also be children
+        // of questions.  This may occur when a decision tree knows that there is
+        // already an answer to the question in the decisions table.
+        if (node.options) {
+          // This node is actually a question.
+          ask(node);
+        }
+        // Nodes must have either a value, a factor or list of questions.
+        else if (typeof(node.value) !== 'undefined') {
+          next(node.value);
+        }
+        else if (node.factor) {
+          // Store the factor in the factors table & move on to the next question.
+          factors[node.parent] = node.factor;
+          next();
+        }
+        else if (node.questions && node.questions.length) {
+          // Link each question to it's next sibling.
+          for (i = 1; i < node.questions.length; i = i + 1) {
+            node.questions[i - 1].next = node.questions[i];
+          }
+          // Ask the first question.
+          ask(node.questions[0]);
         }
         else {
           next();
         }
-      }
-      else if (decisions[question.key] && !question.label) {
-        answer(question, decisions[question.key]);
-      }
-      else {
-        questions.push(question);
-        question.$select = markup(question);
-        question.$select.bind('change', update);
-        if (decisions[question.key]) {
-          question.$select.val(decisions[question.key]);
-          answer(question, decisions[question.key]);
-        }
-      }
-    };
+      };
 
-    answer = function(question, decision) {
-      var child;
+      /**
+       * Asks a question, or answers it immediately if the answer is known.
+       *
+       * @param question
+       *    Question object describing the question to be asked.
+       */
+      ask = function(question) {
+        var decision, node;
 
-      decisions[question.key] = decision;
-
-      child = question.options[decision] || question.options['default'];
-      if (child) {
-        if (typeof(child) === 'number') {
-          complete(child);
-        }
-        else {
-          process(child, question.key);
-        }
-      }
-      else {
-        alert('Using an average');
-        console.debug(question.options);
-        complete(average(question.options));
-      }
-    };
-
-    // Updates after a UI change.
-    update = function() {
-      var $this, question;
-      $this = $(this);
-      question = $this.data('decision-tree-question');
-      debug();
-      if (decisions[question.key]) {
-        orphans(question);
-      }
-      answer(question, $this.val());
-      debug();
-    };
-
-    orphans = function(updated) {
-      var i, question, orphan;
-      for (i in questions) {
-        if (questions.hasOwnProperty(i)) {
-          // @todo Younger siblings of the updated question are not orphans.
-          question = questions[i];
-          if (orphan) {
-            question.$select.remove();
-            delete(questions[i]);
+        // If this question's requirements are not valid, ask the next one.
+        if (!requirements(question)) {
+          if (question.next) {
+            ask(question.next);
           }
           else {
-            orphan = (updated === question);
-          }
-          if (orphan) {
-            delete(decisions[question.key]);
-            delete(factors[question.key]);
+            next();
           }
         }
-      }
-      $el.trigger('decisionTree.incomplete');
-    };
+        else {
+          // Keep track of which questions have been asked.
+          questions.push(question);
 
-    requirements = function(criteria, next) {
-      var key;
-      for (key in criteria) {
-        if (criteria.hasOwnProperty(key)) {
-          if (typeof(criteria[key]) === 'string') {
-            if (decisions[key] !== criteria[key]) {
-              return false;
+          // Check the decision table if there is already an answer for this
+          // question.
+          decision = decisions[question.key];
+
+          // Only ask answered questions in the UI if they have no label.
+          if (decision && !question.label) {
+            // Skip the markup in the UI to answer this question.
+            answer(question, decision);
+          }
+          else {
+            // Ask this question with markup in the UI.
+            question.$select = markup(question);
+
+            // Update the decision tree when the answer is changed.
+            question.$select.bind('change', update);
+
+            // Answer the question in the UI if there is a valid answer already.
+            if (decision && question.options[decision] && requirements(question.options[decision])) {
+              question.$select.val(decision);
+              answer(question, decision);
             }
           }
-          else if (criteria[key].indexOf(decisions[key]) < 0) {
-            return false;
-          }
         }
-      }
-      return true;
-    };
-
-    complete = function(value) {
-      var i, result;
-      for (i in factors) {
-        if (factors.hasOwnProperty(i)) {
-          value *= factors[i];
-        }
-      }
-      result = {
-        'value': value,
-        'factors': factors,
-        'decisions': decisions
       };
-      $el.trigger('decisionTree.complete', result);
-      debug();
-    };
 
-    next = function() {
-      var i;
-      for (i = questions.length - 1; i >= 0; i = i - 1) {
-        if (questions[i] && questions[i].next) {
-          if (!asked(questions[i].next)) {
+      /**
+       * Answer a question.
+       *
+       * @param question
+       *    A question object.
+       * @param decision
+       *    The answer to the question.
+       */
+      answer = function(question, decision) {
+        var child;
+
+        // Store the answer in the decisions table.
+        decisions[question.key] = decision;
+
+        // Disable the label <option> for this question.
+        if (question.$select) {
+          question.$select.find('option.default').attr('disabled', 'disabled');
+        }
+
+        // Determine which child node to descend into.
+        child = question.options[decision] || question.options['default'];
+
+        if (child) {
+          if (typeof(child) === 'number') {
+            // If the next node is a number, it is the final value.
+            next(child);
+          }
+          else {
+            // Descend in the tree to process the child node.
+            process(child, question.key);
+          }
+        }
+        else {
+          // @todo Finish testing.
+          alert('Using an average');
+          console.debug(question.options);
+
+          // Attempt to calculate an average if there are no matching children
+          // and no default child.
+          next(average(question.options));
+        }
+      };
+
+      /**
+       * Determine what to do next.
+       *
+       * @param parameter
+       *    Optional; The final value.
+       */
+      next = function(parameter) {
+        var i;
+
+        // Store the final value if it was passed in as an argument.
+        if (parameter) {
+          value = parameter;
+        }
+
+        debug();
+
+        // Look for any unasked sibling questions of any asked questions.
+        // Search through *most recent* questions first.
+        for (i = questions.length - 1; i >= 0; i = i - 1) {
+          if (questions[i] && questions[i].next && !asked(questions[i].next)) {
+            // Ask the first unasked question encountered.
             ask(questions[i].next);
-            return true;
+            return;
           }
         }
-      }
-    };
 
-    asked = function(question) {
-      return questions.indexOf(question) >= 0;
-    };
+        // If there are no unasked siblings, there is nothing left to do.
+        complete(value);
+      };
 
-    markup = function(question) {
-      var idAttr, $select, value, node, i;
-      idAttr = 'decision-tree-' + id + '-question-' + question.key;
+      /**
+       * Calculate the final value and return the result.
+       *
+       * @param result
+       *    The final value.
+       */
+      complete = function(result) {
+        var i;
 
-      $select = $('<select id="' + idAttr + '" name="' + name + '[' + question.key + ']" class="decision-tree-question"><option class="default" disabled="disabled">' + label + ' ' + question.label + '</option></select>');
-
-      for (value in question.options) {
-        if (question.options.hasOwnProperty(value)) {
-          node = question.options[value];
-          if (!node.requirements || requirements(node.requirements)) {
-            $select.append('<option value="' + value + '">' + (node.label || node) + '</option>');
+        // Multiply the factors.
+        for (i in factors) {
+          if (factors.hasOwnProperty(i)) {
+            result *= factors[i];
           }
         }
-      }
 
-      return $select
-        .data('decision-tree-question', question)
-        .appendTo($el)
-        .hide()
-        .fadeIn();
-    };
+        // Build a result object with all the important bits.
+        result = {
+          'value': result,
+          'factors': factors,
+          'decisions': decisions
+        };
 
-    average = function(values) {
-      var i, value, count;
-      value = 0;
-      count = 0;
-      for (i in values) {
-        if (values.hasOwnProperty(i) && typeof(values[i]) === 'number') {
-          value += values[i];
-          count = count + 1;
+        // Notify that the decision tree has reached a complete state.
+        $el.trigger('decisionTree.complete', result);
+        debug();
+      };
+
+      /**
+       * Handle updates when an answer is selected or changed in the UI.
+       */
+      update = function() {
+        var $select, question;
+
+        // Get the question object for the question that was answered/changed.
+        $select = $(this);
+        question = $select.data('decision-tree-question');
+
+        // If the question already has an answer in the decision table, remove
+        // the child questions that are now irrelevant.
+        if (decisions[question.key]) {
+          orphans(question);
         }
-        // @todo Else, consider attempting to convert the value to a number.
-      }
-      return value / count;
-    };
 
-    debug = function() {
-      if (typeof(console.debug) === 'function') {
-        console.debug({
-          '$el': $el,
-          'id': id,
-          'name': name,
-          'questions': questions,
-          'decisions': decisions,
-          'factors': factors
-        });
-      }
-    };
+        // Process the (new) answer to the question.
+        answer(question, $select.val());
+      };
 
-    process(tree);
+      /**
+       * Remove questions no-longer relevant because a parent's answer changed.
+       *
+       * @param updated
+       *    The question that changed.
+       */
+      orphans = function(updated) {
+        var i, question, orphan;
+
+        // Iterate over questions in the order they were asked.
+        for (i in questions) {
+          if (questions.hasOwnProperty(i)) {
+            question = questions[i];
+            if (orphan) {
+              // This question was asked *after* the updated question.
+              // Remove it from the stack of asked questions.
+              delete(questions[i]);
+
+              // Remove it from the UI if it has a UI element.
+              if (question.$select) {
+                question.$select.remove();
+              }
+            }
+            else {
+              // This is the updated question.  Turn the orphan flag on.
+              orphan = (updated === question);
+            }
+
+            // Clear factors for the updated question and following questions.
+            if (orphan) {
+              delete(factors[question.key]);
+            }
+          }
+        }
+
+        // Notify that the decision tree has moved into an incomplete state.
+        $el.trigger('decisionTree.incomplete');
+      };
+
+      requirements = function(node, next) {
+        var criteria, key;
+        if (node.requirements) {
+          criteria = node.requirements;
+          for (key in criteria) {
+            if (criteria.hasOwnProperty(key)) {
+              if (typeof(criteria[key]) === 'string') {
+                if (decisions[key] !== criteria[key]) {
+                  return false;
+                }
+              }
+              else if (criteria[key].indexOf(decisions[key]) < 0) {
+                return false;
+              }
+            }
+          }
+        }
+        return true;
+      };
+
+      asked = function(question) {
+        return questions.indexOf(question) >= 0;
+      };
+
+      markup = function(question) {
+        var idAttr, $select, value, node, i;
+        idAttr = 'decision-tree-' + id + '-question-' + question.key;
+
+        $select = $('<select id="' + idAttr + '" name="' + name + '[' + question.key + ']" class="decision-tree-question"><option class="default">' + label + ' ' + question.label + '</option></select>');
+
+        for (value in question.options) {
+          if (question.options.hasOwnProperty(value)) {
+            node = question.options[value];
+            if (requirements(node)) {
+              $select.append('<option value="' + value + '">' + (node.label || node) + '</option>');
+            }
+          }
+        }
+
+        return $select
+          .data('decision-tree-question', question)
+          .appendTo($el)
+          .hide()
+          .fadeIn();
+      };
+
+      average = function(values) {
+        var i, value, count;
+        value = 0;
+        count = 0;
+        for (i in values) {
+          if (values.hasOwnProperty(i) && typeof(values[i]) === 'number') {
+            value += values[i];
+            count = count + 1;
+          }
+          // @todo Else, consider attempting to convert the value to a number.
+        }
+        return value / count;
+      };
+
+      debug = function() {
+        if (typeof(console.debug) === 'function') {
+          console.debug({
+            '$el': $el,
+            'id': id,
+            'name': name,
+            'value': value,
+            'questions': questions,
+            'decisions': decisions,
+            'factors': factors
+          });
+        }
+      };
+
+      // Apply the same decision tree to each element in the jQuery object.
+      process(tree);
+    });
 
     return this;
   };
