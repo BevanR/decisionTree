@@ -298,45 +298,89 @@ jQuery = jQuery || false;
         $el.trigger('decisionTree.incomplete');
       };
 
-      requirements = function(node, next) {
+      /**
+       * Checks if a node or questions requirements are met.
+       *
+       * @param node
+       *    The node or question to check requirements for.
+       *
+       * @return Boolean
+       *    True if requirements are met.
+       */
+      requirements = function(node) {
         var criteria, key;
+
+        // If no requirements are defined then the requirements are met.
         if (node.requirements) {
           criteria = node.requirements;
+
+          // Check each criterion.
           for (key in criteria) {
             if (criteria.hasOwnProperty(key)) {
+
+              // If this criterion is a value, check it matches the decision.
               if (typeof(criteria[key]) === 'string') {
                 if (decisions[key] !== criteria[key]) {
+                  // The requirements are not met.
                   return false;
                 }
               }
+
+              // Check if the decision is found in the criterion's array of
+              // possible matches.
               else if (criteria[key].indexOf(decisions[key]) < 0) {
+                // The requirements are not met.
                 return false;
               }
             }
           }
         }
+
+        // The requirements are met.
         return true;
       };
 
+      /**
+       * Checks if a question has been asked.
+       *
+       * @param question
+       *    The question to check.
+       *
+       * @return Boolean
+       *    True if the question has been asked.  False if not.
+       */
       asked = function(question) {
         return questions.indexOf(question) >= 0;
       };
 
+      /**
+       * Build and append DOM to ask a question via the UI.
+       *
+       * @param question
+       *    The question to be asked.
+       *
+       * @return jQuery
+       *    A jQuery object for the element that was appended to the DOM.
+       */
       markup = function(question) {
-        var idAttr, $select, value, node, i;
+        var idAttr, $select, value, i;
+
+        // Assemble the unique identifier for this question's <select> element.
         idAttr = 'decision-tree-' + id + '-question-' + question.key;
 
+        // Render the markup and turn it into a jQuery-wrapped DOM element.
+        // Include the default <option> which is the question's label.
         $select = $('<select id="' + idAttr + '" name="' + name + '[' + question.key + ']" class="decision-tree-question"><option class="default">' + label + ' ' + question.label + '</option></select>');
 
+        // Iterate over the nodes to add the options for this question.
         for (value in question.options) {
-          if (question.options.hasOwnProperty(value)) {
-            node = question.options[value];
-            if (requirements(node)) {
-              $select.append('<option value="' + value + '">' + (node.label || node) + '</option>');
-            }
+          if (question.options.hasOwnProperty(value) && requirements(question.options[value])) {
+            $select.append('<option value="' + value + '">' + question.options[value].label + '</option>');
           }
         }
 
+        // Return the jQuery object after attaching the question object to it,
+        // adding the <select> element to the document, and animating it.
         return $select
           .data('decision-tree-question', question)
           .appendTo($el)
@@ -344,20 +388,32 @@ jQuery = jQuery || false;
           .fadeIn();
       };
 
+      /**
+       * Find the average of a set of values.
+       *
+       * @param values
+       *    The values to be averaged.
+       *
+       * @return Number
+       *    The average.
+       */
       average = function(values) {
         var i, value, count;
         value = 0;
         count = 0;
         for (i in values) {
+          // @todo Consider attempting to convert non-number values to a number.
           if (values.hasOwnProperty(i) && typeof(values[i]) === 'number') {
             value += values[i];
             count = count + 1;
           }
-          // @todo Else, consider attempting to convert the value to a number.
         }
         return value / count;
       };
 
+      /**
+       * Debug the current state of the decisionTree.
+       */
       debug = function() {
         if (typeof(console.debug) === 'function') {
           console.debug({
@@ -376,6 +432,7 @@ jQuery = jQuery || false;
       process(tree);
     });
 
+    // Allow chaining.
     return this;
   };
 }(jQuery));
