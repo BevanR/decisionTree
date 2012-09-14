@@ -364,7 +364,7 @@ jQuery = jQuery || false;
        *    A jQuery object for the element that was appended to the DOM.
        */
       markup = function(question) {
-        var idAttr, $select, value, i;
+        var idAttr, $select, value, node;
 
         // Assemble the unique identifier for this question's <select> element.
         idAttr = 'decision-tree-' + id + '-question-' + question.key;
@@ -376,7 +376,8 @@ jQuery = jQuery || false;
         // Iterate over the nodes to add the options for this question.
         for (value in question.options) {
           if (question.options.hasOwnProperty(value) && requirements(question.options[value])) {
-            $select.append('<option value="' + value + '">' + question.options[value].label + '</option>');
+            node = question.options[value];
+            $select.append('<option value="' + value + '">' + (node.label || node) + '</option>');
           }
         }
 

@@ -82,6 +82,6 @@ Nodes must have either `value`, `factor`, or `questions`.  The first one of thes
 #### Properties
 
 * `key`, String:  Identifies this question in HTML form and HTTP-submitted values.  It also identifies the question's answer in the decision table, and the question's factor in the factor table.  *Required*.
-* `options`, Object:  Property names get stored in the decision table.  Values are either a number, a Node or a question.  A numeric result is handled just like a Node with a `value` property but no `label`.  *Required*.
+* `options`, Object:  Property names get stored in the decision table.  Values are either a number, a string, a Node or a Question.  A numeric result is handled just like a Node with a `value` property but no `label`.  A string is handled like a Node with a `label` property but no other properties.   *Required*.
 * `label`, String:  Used to build the label for the question.  Questions that are already answered and should not be updateable by the decision-maker should omit a `label`.
 * `requirements`, Object:  As per Node `requirements`.
