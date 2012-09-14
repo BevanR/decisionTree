@@ -10,9 +10,11 @@ var options = {
 };
 jQuery('#my-decision-tree-wrapper')
   .decisionTree(myQuestionTree, options)
-  .bind('decisionTree.complete', function() {
+  .bind('decisionTree.complete', function(result) {
     alert('You answered all the questions!');
-    console.log('The user reached an endpoint in the decision tree.');
+    console.log('The user reached an endpoint in the decision tree: ' + result.value);
+    console.debug(result.factors);
+    console.debug(result.decisions);
   })
   .bind('decisionTree.incomplete', function() {
     console.log('The user changed a previous decision.');
