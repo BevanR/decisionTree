@@ -173,10 +173,6 @@ jQuery = jQuery || false;
           }
         }
         else {
-          // @todo Finish testing.
-          alert('Using an average');
-          console.debug(question.options);
-
           // Attempt to calculate an average if there are no matching children
           // and no default child.
           next(average(question.options));
