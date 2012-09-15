@@ -52,7 +52,7 @@ jQuery = jQuery || false;
        * @param node
        *    The node to be processed.  This may also be a question.
        * @param parent
-       *    The key of the question which is a parent to this node (or question).
+       *    The key of the question which is a parent to this node.
        */
       process = function(node, parent) {
         var i;
@@ -76,7 +76,7 @@ jQuery = jQuery || false;
           next(node.value);
         }
         else if (node.factor) {
-          // Store the factor in the factors table & move on to the next question.
+          // Store the factor in the factors table & go to the next question.
           factors[node.parent] = node.factor;
           next();
         }
