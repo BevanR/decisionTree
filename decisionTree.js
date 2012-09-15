@@ -6,7 +6,7 @@
 
 // @todo Document this.
 
-/*jslint white: true, devel: true */
+/*jslint white: true, devel: true, browser: true */
 
 // This keeps jslint from complaining about undefined variables.
 // @todo Comment this out in production.
@@ -233,7 +233,15 @@ jQuery = jQuery || false;
         };
 
         // Notify that the decision tree has reached a complete state.
-        $el.trigger('decisionTree.complete', result);
+        // Always call from a seperate event so that a decisionTree() caller can
+        // finish binding to decisionTree events, even if the decision tree
+        // completes in the same event as initialization; such as when
+        // decisionTree() is used primarily to get a result from a questionTree,
+        // rather than for the UI.
+        setTimeout(function() {
+          $el.trigger('decisionTree.complete', result);
+        }, 10);
+
         debug();
       };
 
