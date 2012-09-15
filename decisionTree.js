@@ -31,6 +31,7 @@ jQuery = jQuery || false;
         process, ask, answer, next, complete, update, orphans, requirements, asked, markup, average, debug;
 
       $el = $(this);
+      options = options || {};
       // Create a unique ID for this decision tree instance.
       id = options.id || Math.floor(Math.random() * 1000);
       // Use the unique ID to form the the <input name=""> attributes.
@@ -192,7 +193,7 @@ jQuery = jQuery || false;
         var i;
 
         // Store the final value if it was passed in as an argument.
-        if (parameter) {
+        if (typeof(parameter) !== 'undefined') {
           value = parameter;
         }
 
