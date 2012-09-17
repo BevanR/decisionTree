@@ -103,6 +103,9 @@ jQuery = jQuery || false;
       ask = function(question) {
         var decision, node;
 
+        // Keep track of which questions have been asked.
+        questions.push(question);
+
         // If this question's requirements are not valid, ask the next one.
         if (!requirements(question)) {
           if (question.next) {
@@ -113,11 +116,7 @@ jQuery = jQuery || false;
           }
         }
         else {
-          // Keep track of which questions have been asked.
-          questions.push(question);
-
-          // Check the decision table if there is already an answer for this
-          // question.
+          // Check the decisions table if this question has been answered.
           decision = decisions[question.key];
 
           // Only ask answered questions in the UI if they have a label & no UI.
