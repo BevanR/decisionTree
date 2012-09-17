@@ -24,7 +24,7 @@ jQuery = jQuery || false;
     this.each(function() {
 
       // Declare all vars & functions so the scope is unambiguous.
-      var $el, id, name, label, questions, decisions, factors, value,
+      var $el, id, name, label, questions, $selects, decisions, factors, value,
         /* Functions: */
         process, ask, answer, next, complete, update, orphans, requirements, asked, markup, average, debug;
 
@@ -38,6 +38,9 @@ jQuery = jQuery || false;
 
       // Track the asked questions.  They may be unanswered.
       questions = [];
+      // Track UI elements by question key to suppress duplicate questions from
+      // the UI.
+      $selects = {};
       // The decision table stores answers to questions (aka "decisions").
       // Allow previously stored and retrieved decision tables to be restored.
       decisions = options.decisions || {};
@@ -117,14 +120,15 @@ jQuery = jQuery || false;
           // question.
           decision = decisions[question.key];
 
-          // Only ask answered questions in the UI if they have no label.
-          if (decision && !question.label) {
+          // Only ask answered questions in the UI if they have a label & no UI.
+          if (decision && ($selects[question.key] || !question.label)) {
             // Skip the markup in the UI to answer this question.
             answer(question, decision);
           }
           else {
             // Ask this question with markup in the UI.
             question.$select = markup(question);
+            $selects[question.key] = question.$select;
 
             // Update the decision tree when the answer is changed.
             question.$select.bind('change', update);
@@ -284,6 +288,8 @@ jQuery = jQuery || false;
               // Remove it from the UI if it has a UI element.
               if (question.$select) {
                 question.$select.remove();
+                delete(question.$select);
+                delete($selects[question.key]);
               }
             }
             else {
@@ -427,6 +433,7 @@ jQuery = jQuery || false;
             'name': name,
             'value': value,
             'questions': questions,
+            '$selects': $selects,
             'decisions': decisions,
             'factors': factors
           });
