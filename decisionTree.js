@@ -420,8 +420,8 @@ jQuery = jQuery || false;
        * Debug the current state of the decisionTree.
        */
       debug = function() {
-        if (typeof(console.debug) === 'function') {
-          console.debug({
+        if (typeof(console.log) === 'function') {
+          console.log({
             '$el': $el,
             'id': id,
             'name': name,
