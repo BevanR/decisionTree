@@ -4,8 +4,6 @@
  * @see README.md
  */
 
-// @todo Document this.
-
 /*jslint white: true, devel: true, browser: true */
 
 // This keeps jslint from complaining about undefined variables.
