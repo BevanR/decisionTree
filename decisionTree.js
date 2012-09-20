@@ -120,16 +120,13 @@ jQuery = jQuery || false;
           decision = decisions[question.key];
 
           // Only ask answered questions in the UI if they have a label & no UI.
-          console.log('looking for ' + question.key);
           if (decision && ($selects[question.key] || !question.label)) {
-            console.log(question.key + ' found');
             // Skip the markup in the UI to answer this question.
             answer(question, decision);
           }
           else {
             // Ask this question with markup in the UI.
             question.$select = markup(question);
-            console.log('setting ' + question.key);
             $selects[question.key] = question.$select;
 
             // Update the decision tree when the answer is changed.
