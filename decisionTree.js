@@ -282,11 +282,15 @@ jQuery = jQuery || false;
 
               // Remove it from the UI if it has a UI element.
               if (question.$select) {
-                // question.$select.remove();
+                question.$select.remove();
+
+                // This should never happen, but sometimes it does.
+                // @todo Work out why this occurs and fix or document it.
+                if (question.$select !== $selects[question.key]) {
+                  $selects[question.key].remove();
+                }
+
                 delete(question.$select);
-              }
-              if ($selects[question.key]) {
-                $selects[question.key].remove();
                 delete($selects[question.key]);
               }
             }
