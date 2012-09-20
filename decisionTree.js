@@ -194,8 +194,6 @@ jQuery = jQuery || false;
           value = parameter;
         }
 
-        debug();
-
         // Look for any unasked sibling questions of any asked questions.
         // Search through *most recent* questions first.
         for (i = questions.length - 1; i >= 0; i = i - 1) {
@@ -242,8 +240,6 @@ jQuery = jQuery || false;
         setTimeout(function() {
           $el.trigger('decisionTree.complete', result);
         }, 10);
-
-        debug();
       };
 
       /**
