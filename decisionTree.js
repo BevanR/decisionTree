@@ -151,6 +151,7 @@
 
         // Disable the label <option> for this question.
         if (question.$select) {
+          question.$select.addClass('answered');
           question.$select.find('option.default').attr('disabled', 'disabled');
         }
 
