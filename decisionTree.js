@@ -5,16 +5,10 @@
  */
 
 /*jslint white: true, devel: true, browser: true */
-
-// This keeps jslint from complaining about undefined variables.
-// @todo Comment this out in production.
-var jQuery;
-jQuery = jQuery || false;
+/*global jQuery*/
 
 // Provide closure.
 (function($){
-
-  // @todo Don't use strict mode in production.
   "use strict";
 
   // Implement as a jQuery plugin.
