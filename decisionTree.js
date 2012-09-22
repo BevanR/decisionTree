@@ -233,7 +233,7 @@
         // rather than for the UI.
         setTimeout(function() {
           $el.trigger('decisionTree.complete', result);
-        }, 10);
+        }, 0);
       };
 
       /**
