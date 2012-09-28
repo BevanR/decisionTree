@@ -1,4 +1,5 @@
-/*jslint white: true, devel: true, undef: true, sloppy: true */
+/*jslint white: true, devel: true, sloppy: true */
+/*globals jQuery, myQuestionTree */
 var options = {
   id: 'type-picker',
   name: 'type-picker[0]',
