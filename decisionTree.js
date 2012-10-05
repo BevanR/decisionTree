@@ -408,7 +408,7 @@
             count = count + 1;
           }
         }
-        return value / count;
+        return count ? value / count : null;
       };
 
       /**
