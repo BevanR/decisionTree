@@ -403,7 +403,6 @@
         value = 0;
         count = 0;
         for (i in values) {
-          // @todo Consider attempting to convert non-number values to a number.
           if (values.hasOwnProperty(i) && typeof(values[i]) === 'number') {
             value += values[i];
             count = count + 1;
