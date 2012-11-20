@@ -370,7 +370,7 @@
 
         // Render the markup and turn it into a jQuery-wrapped DOM element.
         // Include the default <option> which is the question's label.
-        $select = $('<select id="' + idAttr + '" name="' + name + '[' + question.key + ']" class="decision-tree-question"><option class="default">' + label + ' ' + question.label + '</option></select>');
+        $select = $('<select id="' + idAttr + '" name="' + name + '[' + question.key + ']" class="decision-tree-question"><option class="default" value="">' + label + ' ' + question.label + '</option></select>');
 
         // Iterate over the nodes to add the options for this question.
         for (value in question.options) {
