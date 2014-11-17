@@ -159,13 +159,13 @@
         child = question.options[decision] || question.options['default'];
 
         if (child) {
-          if (typeof(child) === 'number') {
-            // If the next node is a number, it is the final value.
-            next(child);
-          }
-          else {
+          if (typeof(child) === 'object') {
             // Descend in the tree to process the child node.
             process(child, question.key);
+          }
+          else {
+            // If the next node is scalar (number or string), it is the final value.
+            next(child);
           }
         }
         else {
